@@ -3,7 +3,12 @@ import json
 from flask import Flask, jsonify
 import boto3
 from botocore.exceptions import ClientError
+from read_roi import read_roi_file
+
 app = Flask(__name__)
+s3_client = boto3.client('s3')
+
+BUCKET = "cgs-p12"
 
 
 @app.route('/')
@@ -18,20 +23,34 @@ def roi():
         return jsonify(data)
 
 
-@app.route('/image/<name>', methods=['POST'])
+@app.route('/image/<name>/url', methods=['POST'])
 def get_signed_url(name):
-    s3_client = boto3.client('s3')
-    try:
-        url = s3_client.generate_presigned_url('get_object',
-                                               Params={
-                                                   "Bucket": "cgs-p12",
-                                                   "Key": name
-                                               },
-                                               ExpiresIn=3600)
-    except ClientError as e:
-        logging.error(e)
-        return None
+    url = s3_client.generate_presigned_url('get_object',
+                                           Params={
+                                               "Bucket": BUCKET,
+                                               "Key": name
+                                           },
+                                           ExpiresIn=3600)
     return jsonify({"url": url})
+
+
+def image_path(name):
+    return 'data/' + name + '/'
+
+
+@app.route('/image/<name>/roi', methods=['GET'])
+def get_roi(name):
+    listing = s3_client.list_objects(Bucket=BUCKET, Prefix=image_path(name))
+    result = []
+    for file in listing["Contents"]:
+        if (file["Key"].endswith('.roi')):
+            print(file["Key"])
+            tmp_file = '/tmp/roi_file_tmp.roi'
+            with open(tmp_file, 'wb') as f:
+                s3_client.download_fileobj(BUCKET, file["Key"], f)
+            rois = read_roi_file(tmp_file)
+            result.append(rois)
+    return jsonify(result)
 
 
 if __name__ == '__main__':
