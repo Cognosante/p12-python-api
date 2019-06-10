@@ -65,6 +65,13 @@ def get_signed_url(name):
 def image_path(name):
     return 'data/' + name + '/'
 
+@app.route('/images', methods=['GET'])
+def get_images():
+    response = s3_client.list_objects(Bucket=BUCKET, Prefix='data')
+    print(response)
+    return jsonify({"listing": response["Contents"]})
+
+
 
 @app.route('/image/<name>/roi', methods=['GET'])
 def get_roi(name):
