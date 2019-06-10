@@ -11,6 +11,9 @@ CORS(app)
 
 s3_client = boto3.client('s3')
 
+app = Flask(__name__)
+CORS(app)
+
 BUCKET = "cgs-p12"
 
 
@@ -27,18 +30,36 @@ def roi():
 
 
 def get_upload_name(name):
-    parts = name.split('.',1)
-    return 'data/' + parts[0] + '/image.' + parts[1]
+    parts = name.split('.', 1)
+    return parts[0] + '/image.' + parts[1]
+
+
+@app.route('/image/<fileName>/url', methods=['POST'])
+def get_upload_url(fileName):
+    url = s3_client.generate_presigned_url(
+        'put_object',
+        Params={
+            "Bucket": BUCKET,
+            "Key": image_path(fileName.split('.', 1)[0]) + 'image.ome.tif'
+        },
+        ExpiresIn=3600)
+    print('UPLOAD URL: ' + url)
+    return jsonify({"url": url})
+
 
 @app.route('/image/<name>/url', methods=['GET'])
 def get_signed_url(name):
-    response = s3_client.generate_presigned_url('put_object',
-                                  Params={'Bucket': BUCKET,
-                                          'Key':get_upload_name(name)
-                                  },
-                                  ExpiresIn=600)
-    print(response)
-    return jsonify({"url": response})
+    url = s3_client.generate_presigned_url('get_object',
+                                           Params={
+                                               "Bucket":
+                                               BUCKET,
+                                               "Key":
+                                               image_path(name) +
+                                               'image.ome.tif'
+                                           },
+                                           ExpiresIn=3600)
+    print('DOWNLOAD URL: ' + url)
+    return jsonify({"url": url})
 
 
 def image_path(name):
