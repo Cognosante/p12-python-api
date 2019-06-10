@@ -61,6 +61,12 @@ def get_signed_url(name):
     print('DOWNLOAD URL: ' + url)
     return jsonify({"url": url})
 
+@app.route('/images', methods=['GET'])
+def get_images():
+    response = s3_client.list_objects(Bucket=BUCKET, Prefix='data')
+    print(response)
+    return jsonify({"listing": response["Contents"]})
+
 
 def image_path(name):
     return 'data/' + name + '/'
