@@ -2,3 +2,4 @@
 flask
 zappa
 jsonify
+boto3
