@@ -23,12 +23,16 @@ def roi():
         return jsonify(data)
 
 
-@app.route('/image/<name>/url', methods=['POST'])
+def get_upload_name(name):
+    parts = name.split('.',1)
+    return parts[0] + '/image.' + parts[1]
+
+@app.route('/image/<name>/url', methods=['GET'])
 def get_signed_url(name):
     url = s3_client.generate_presigned_url('get_object',
                                            Params={
                                                "Bucket": BUCKET,
-                                               "Key": name
+                                               "Key": get_upload_name(name)
                                            },
                                            ExpiresIn=3600)
     return jsonify({"url": url})
