@@ -4,3 +4,4 @@ zappa
 jsonify
 boto3
 read_roi
+flask-cors

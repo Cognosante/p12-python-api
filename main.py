@@ -4,8 +4,11 @@ from flask import Flask, jsonify
 import boto3
 from botocore.exceptions import ClientError
 from read_roi import read_roi_file
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)
+
 s3_client = boto3.client('s3')
 
 BUCKET = "cgs-p12"
@@ -25,17 +28,17 @@ def roi():
 
 def get_upload_name(name):
     parts = name.split('.',1)
-    return parts[0] + '/image.' + parts[1]
+    return 'data/' + parts[0] + '/image.' + parts[1]
 
 @app.route('/image/<name>/url', methods=['GET'])
 def get_signed_url(name):
-    url = s3_client.generate_presigned_url('get_object',
-                                           Params={
-                                               "Bucket": BUCKET,
-                                               "Key": get_upload_name(name)
-                                           },
-                                           ExpiresIn=3600)
-    return jsonify({"url": url})
+    response = s3_client.generate_presigned_url('put_object',
+                                  Params={'Bucket': BUCKET,
+                                          'Key':get_upload_name(name)
+                                  },
+                                  ExpiresIn=600)
+    print(response)
+    return jsonify({"url": response})
 
 
 def image_path(name):
