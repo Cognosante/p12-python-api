@@ -42,7 +42,7 @@ def get_upload_url(fileName):
             "Bucket": BUCKET,
             "Key": image_path(fileName.split('.', 1)[0]) + 'image.ome.tif'
         },
-        ExpiresIn=3600)
+        ExpiresIn=7200)
     print('UPLOAD URL: ' + url)
     return jsonify({"url": url})
 
@@ -57,7 +57,7 @@ def get_signed_url(name):
                                                image_path(name) +
                                                'image.ome.tif'
                                            },
-                                           ExpiresIn=3600)
+                                           ExpiresIn=7200)
     print('DOWNLOAD URL: ' + url)
     return jsonify({"url": url})
 
