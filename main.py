@@ -40,7 +40,8 @@ def get_upload_url(fileName):
         'put_object',
         Params={
             "Bucket": BUCKET,
-            "Key": image_path(fileName.split('.', 1)[0]) + 'image.ome.tif'
+            "Key": image_path(fileName.split('.', 1)[0]) + 'image.ome.tif',
+            "ContentType": 'image/tiff'
         },
         ExpiresIn=7200)
     print('UPLOAD URL: ' + url)
@@ -51,11 +52,10 @@ def get_upload_url(fileName):
 def get_signed_url(name):
     url = s3_client.generate_presigned_url('get_object',
                                            Params={
-                                               "Bucket":
-                                               BUCKET,
-                                               "Key":
-                                               image_path(name) +
-                                               'image.ome.tif'
+                                               "Bucket": BUCKET,
+                                               "Key": image_path(name) +
+                                               'image.ome.tif',
+                                               "ContentType": 'image/tiff'
                                            },
                                            ExpiresIn=7200)
     print('DOWNLOAD URL: ' + url)
@@ -65,12 +65,12 @@ def get_signed_url(name):
 def image_path(name):
     return 'data/' + name + '/'
 
+
 @app.route('/images', methods=['GET'])
 def get_images():
     response = s3_client.list_objects(Bucket=BUCKET, Prefix='data')
     print(response)
     return jsonify({"listing": response["Contents"]})
-
 
 
 @app.route('/image/<name>/roi', methods=['GET'])
